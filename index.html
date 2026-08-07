@@ -46,13 +46,23 @@
 
             <!-- Formulario de Registro -->
             <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-                <form id="formIngreso" class="flex flex-col sm:flex-row gap-3">
-                    <input type="text" id="patenteInput" placeholder="Ingrese Patente (Ej: AB1234)" required 
-                           class="flex-1 border border-slate-300 rounded-lg px-4 py-2.5 uppercase font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500">
-                    <button type="submit" 
-                            class="bg-amber-600 hover:bg-amber-700 text-white font-semibold px-6 py-2.5 rounded-lg transition-colors shadow-sm active:scale-95">
-                        + Registrar Vehículo
-                    </button>
+                <form id="formIngreso" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Patente</label>
+                        <input type="text" id="patenteInput" placeholder="Ej: AB1234" required 
+                               class="w-full border border-slate-300 rounded-lg px-4 py-2 uppercase font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Lavador (Opcional al ingreso)</label>
+                        <input type="text" id="lavadorInput" placeholder="Nombre del lavador" 
+                               class="w-full border border-slate-300 rounded-lg px-4 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    </div>
+                    <div class="flex items-end">
+                        <button type="submit" 
+                                class="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow-sm active:scale-95">
+                            + Registrar Vehículo
+                        </button>
+                    </div>
                 </form>
             </div>
 
@@ -70,6 +80,7 @@
                             <tr class="border-b bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
                                 <th class="p-3">Ingreso</th>
                                 <th class="p-3">Patente</th>
+                                <th class="p-3">Lavador Asignado</th>
                                 <th class="p-3">Estado</th>
                                 <th class="p-3 text-right">Acción</th>
                             </tr>
@@ -151,7 +162,7 @@
                     </div>
                 </div>
 
-                <!-- Gráfico Comparativo Diario (Lavados vs Pendientes) -->
+                <!-- Gráfico Comparativo Diario -->
                 <div class="bg-white p-4 rounded-xl border border-slate-200 page-break-inside-avoid">
                     <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Balance Diario: Lavados vs. Pendientes</h4>
                     <div class="w-full h-52">
@@ -159,7 +170,7 @@
                     </div>
                 </div>
 
-                <!-- Resumen por Fecha (Tabla de Producción Diaria) -->
+                <!-- Resumen por Fecha -->
                 <div class="bg-white p-4 rounded-xl border border-slate-200 page-break-inside-avoid">
                     <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Resumen Consolidado por Fecha</h4>
                     <table class="w-full text-left border-collapse">
@@ -175,15 +186,16 @@
                     </table>
                 </div>
 
-                <!-- Detalle Completo de Vehículos -->
+                <!-- Detalle Completo de Vehículos e Identificación de Lavador -->
                 <div class="bg-white p-4 rounded-xl border border-slate-200">
                     <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Detalle Individual de Vehículos</h4>
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="border-b bg-slate-50 text-slate-500 text-xs uppercase">
                                 <th class="p-2.5">Fecha Ingreso</th>
-                                <th class="p-2.5">Hora Ingreso</th>
+                                <th class="p-2.5">Hora</th>
                                 <th class="p-2.5">Patente</th>
+                                <th class="p-2.5">Lavador</th>
                                 <th class="p-2.5 text-right">Estado Actual</th>
                             </tr>
                         </thead>
@@ -249,13 +261,17 @@
 
         document.getElementById('formIngreso').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const input = document.getElementById('patenteInput');
-            const patente = input.value.trim().toUpperCase();
+            const inputPatente = document.getElementById('patenteInput');
+            const inputLavador = document.getElementById('lavadorInput');
+            
+            const patente = inputPatente.value.trim().toUpperCase();
+            const lavador = inputLavador.value.trim() || 'Sin Asignar';
             if(!patente) return;
 
             const ahora = new Date();
             await addDoc(lavadosRef, {
                 patente: patente,
+                lavador: lavador,
                 estado: 'Pendiente',
                 horaIngreso: ahora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 fechaIngreso: ahora.toISOString().split('T')[0],
@@ -263,15 +279,28 @@
                 horaLavado: null,
                 timestamp: Date.now()
             });
-            input.value = '';
+            inputPatente.value = '';
+            inputLavador.value = '';
         });
 
         window.cambiarEstado = async (id, nuevoEstado) => {
             const docRef = doc(db, "lavados", id);
             const ahora = new Date();
+
             if (nuevoEstado === 'Lavado') {
+                const registroActual = todosLosRegistros.find(r => r.id === id);
+                let lavador = registroActual?.lavador;
+
+                if (!lavador || lavador === 'Sin Asignar') {
+                    const nombreSolicitado = prompt("Ingrese el nombre del lavador responsable:");
+                    if (nombreSolicitado && nombreSolicitado.trim() !== "") {
+                        lavador = nombreSolicitado.trim();
+                    }
+                }
+
                 await updateDoc(docRef, { 
                     estado: 'Lavado',
+                    lavador: lavador || 'Sin Asignar',
                     fechaLavado: ahora.toISOString().split('T')[0],
                     horaLavado: ahora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                 });
@@ -297,7 +326,7 @@
             tbody.innerHTML = '';
 
             if (registrosHoy.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400">No hay vehículos ingresados hoy.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">No hay vehículos ingresados hoy.</td></tr>`;
                 return;
             }
 
@@ -307,6 +336,7 @@
                 tr.innerHTML = `
                     <td class="p-3 text-slate-500">${reg.horaIngreso || '--:--'}</td>
                     <td class="p-3 font-bold text-slate-800">${reg.patente}</td>
+                    <td class="p-3 text-slate-600 font-medium">${reg.lavador || 'Sin Asignar'}</td>
                     <td class="p-3">
                         ${reg.estado === 'Pendiente' 
                           ? '<span class="px-2 py-0.5 rounded text-xs font-bold bg-yellow-100 text-yellow-800">⏳ Pendiente</span>'
@@ -337,7 +367,7 @@
                 return fechaRef >= fInicio && fechaRef <= fFin;
             });
 
-            actualizarInformeProduccion(registrosFiltrados, fInicio, fFin);
+            actualizarInformeProduccion(registrosFiltrados);
         };
 
         window.setFiltroRapido = (tipo) => {
@@ -361,7 +391,6 @@
             const totalLavados = registros.filter(r => r.estado === 'Lavado').length;
             const totalPendientes = registros.filter(r => r.estado === 'Pendiente').length;
 
-            // Agrupar por Fecha
             const desgloseDiario = {};
             registros.forEach(r => {
                 const fecha = r.fechaIngreso || r.fechaLavado;
@@ -381,7 +410,6 @@
             document.getElementById('metricTotalPendientes').innerText = totalPendientes;
             document.getElementById('metricPromedioDiario').innerText = promedioDiario;
 
-            // Renderizar Tabla de Resumen Diario
             const tbodyResumen = document.getElementById('tablaResumenDiario');
             tbodyResumen.innerHTML = '';
             const fechasOrdenadas = Object.keys(desgloseDiario).sort();
@@ -402,12 +430,11 @@
                 });
             }
 
-            // Renderizar Tabla de Detalle Individual
             const tbodyHistorico = document.getElementById('tablaHistorico');
             tbodyHistorico.innerHTML = '';
 
             if (registros.length === 0) {
-                tbodyHistorico.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400">No hay registros en el rango seleccionado.</td></tr>`;
+                tbodyHistorico.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">No hay registros en el rango seleccionado.</td></tr>`;
             } else {
                 registros.forEach(reg => {
                     const tr = document.createElement('tr');
@@ -419,6 +446,7 @@
                         <td class="p-2.5 text-slate-700 font-medium">${reg.fechaIngreso || '--'}</td>
                         <td class="p-2.5 text-slate-500">${reg.horaIngreso || '--:--'}</td>
                         <td class="p-2.5 font-bold text-amber-700">${reg.patente}</td>
+                        <td class="p-2.5 text-slate-700">${reg.lavador || 'Sin Asignar'}</td>
                         <td class="p-2.5 text-right">${badge}</td>
                     `;
                     tbodyHistorico.appendChild(tr);
