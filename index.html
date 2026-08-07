@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Lavado de Autos - Tattersall</title>
+    <!-- CSS: Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js para Gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- html2pdf.js para Exportación a PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen">
+
+    <!-- Encabezado Principal -->
+    <header class="bg-amber-600 text-white p-4 shadow-md">
+        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div>
+                <h1 class="text-xl font-bold flex items-center gap-2">
+                    <span>🚗</span> Control de Lavado de Autos
+                </h1>
+                <p class="text-xs text-amber-100 mt-0.5">Conectado en Tiempo Real con Firebase</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="exportarPDF()" class="bg-red-600 hover:bg-red-700 text-white font-semibold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shadow-sm transition-all active:scale-95">
+                    <span>📄</span> Exportar PDF
+                </button>
+                <div id="reloj" class="text-sm font-mono opacity-90 font-bold bg-amber-700 px-3 py-1 rounded-lg"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Imprimible/Exportable -->
+    <main id="areaReporte" class="max-w-6xl mx-auto p-4 space-y-6">
+
+        <!-- 1. Formulario de Registro Rápido -->
+        <section class="bg-white p-5 rounded-xl shadow-sm border border-slate-200" data-html2canvas-ignore="true">
+            <h2 class="text-base font-bold mb-3 text-slate-700 flex items-center gap-2">
+                <span>📝</span> Ingresar Nuevo Vehículo
+            </h2>
+            <form id="formIngreso" class="flex flex-col sm:flex-row gap-3">
+                <input type="text" id="patenteInput" placeholder="Ingrese Patente (Ej: AB-1234 / AA-123-BB)" required 
+                       class="flex-1 border border-slate-300 rounded-lg px-4 py-2.5 uppercase font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                <button type="submit" id="btnGuardar"
+                        class="bg-amber-600 hover:bg-amber-700 text-white font-semibold px-6 py-2.5 rounded-lg transition-colors shadow-sm active:scale-95 flex items-center justify-center gap-2">
+                    <span>+</span> Registrar Vehículo
+                </button>
+            </form>
+        </section>
+
+        <!-- 2. Tarjetas de Métricas Rápidas (Hoy) -->
+        <section class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-yellow-500 flex justify-between items-center">
+                <div>
+                    <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Pendientes de Lavar</p>
+                    <p id="totalPendientes" class="text-3xl font-black text-yellow-600 mt-1">0</p>
+                </div>
+                <div class="bg-yellow-50 p-3 rounded-full text-yellow-600 text-xl font-bold">⏳</div>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-green-500 flex justify-between items-center">
+                <div>
+                    <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Lavados Completados</p>
+                    <p id="totalLavados" class="text-3xl font-black text-green-600 mt-1">0</p>
+                </div>
+                <div class="bg-green-50 p-3 rounded-full text-green-600 text-xl font-bold">✨</div>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-amber-500 flex justify-between items-center">
+                <div>
+                    <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Total Atendidos Hoy</p>
+                    <p id="totalDia" class="text-3xl font-black text-amber-600 mt-1">0</p>
+                </div>
+                <div class="bg-amber-50 p-3 rounded-full text-amber-600 text-xl font-bold">📊</div>
+            </div>
+        </section>
+
+        <!-- 3. Tabla Operativa (Cola de Trabajo del Día) -->
+        <section class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-base font-bold text-slate-700 flex items-center gap-2">
+                    <span>📋</span> Cola de Trabajo del Día
+                </h2>
+                <span class="text-xs text-emerald-600 font-bold flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Base de Datos en Vivo
+                </span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
+                            <th class="p-3">Hora Ingreso</th>
+                            <th class="p-3">Patente</th>
+                            <th class="p-3">Estado Actual</th>
+                            <th class="p-3 text-right" data-html2canvas-ignore="true">Acción Operativa</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaRegistros" class="divide-y divide-slate-100 font-mono text-sm">
+                        <!-- Carga dinámica desde Firestore -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 4. Sección de Estadísticas -->
+        <section class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                <div>
+                    <h2 class="text-base font-bold text-slate-700 flex items-center gap-2">
+                        <span>📈</span> Estadísticas de Operación
+                    </h2>
+                </div>
+            </div>
+            <div class="w-full h-64">
+                <canvas id="graficoEstadisticas"></canvas>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Módulos de Firebase SDK v10 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            onSnapshot, 
+            doc, 
+            updateDoc, 
+            deleteDoc, 
+            query, 
+            orderBy 
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Tus credenciales oficiales de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyALBTpZnFDcCtmis-iR9BLBWyC1waiqyWc",
+            authDomain: "lavadotattersall.firebaseapp.com",
+            projectId: "lavadotattersall",
+            storageBucket: "lavadotattersall.firebasestorage.app",
+            messagingSenderId: "785354976428",
+            appId: "1:785354976428:web:5aef07c327dd9b3e0f8309",
+            measurementId: "G-HT2THRLBM3"
+        };
+
+        // Inicializar Servicios
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const lavadosRef = collection(db, "lavados");
+
+        let graficoInstance = null;
+
+        // Reloj
+        setInterval(() => {
+            document.getElementById('reloj').innerText = new Date().toLocaleTimeString('es-ES');
+        }, 1000);
+
+        // 1. ESCUCHAR CAMBIOS EN LA BASE DE DATOS EN TIEMPO REAL
+        const q = query(lavadosRef, orderBy("timestamp", "desc"));
+        onSnapshot(q, (snapshot) => {
+            const registros = [];
+            snapshot.forEach((docSnap) => {
+                registros.push({ id: docSnap.id, ...docSnap.data() });
+            });
+            actualizarInterfaz(registros);
+        });
+
+        // 2. GUARDAR NUEVO VEHÍCULO
+        document.getElementById('formIngreso').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('patenteInput');
+            const patente = input.value.trim().toUpperCase();
+            if(!patente) return;
+
+            try {
+                await addDoc(lavadosRef, {
+                    patente: patente,
+                    estado: 'Pendiente',
+                    hora: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    fecha: new Date().toISOString().split('T')[0],
+                    timestamp: Date.now()
+                });
+                input.value = '';
+            } catch (error) {
+                alert("Error al guardar en la base de datos: " + error.message);
+            }
+        });
+
+        // 3. CAMBIAR ESTADO EN FIRESTORE
+        window.cambiarEstado = async (id, nuevoEstado) => {
+            try {
+                const docRef = doc(db, "lavados", id);
+                await updateDoc(docRef, { estado: nuevoEstado });
+            } catch (error) {
+                console.error("Error al actualizar:", error);
+            }
+        };
+
+        // 4. ELIMINAR REGISTRO DE FIRESTORE
+        window.eliminarRegistro = async (id) => {
+            if(confirm("¿Seguro que deseas eliminar este registro?")) {
+                try {
+                    await deleteDoc(doc(db, "lavados", id));
+                } catch (error) {
+                    console.error("Error al eliminar:", error);
+                }
+            }
+        };
+
+        // RENDERIZAR INTERFAZ Y GRÁFICOS
+        function actualizarInterfaz(registros) {
+            const pendientes = registros.filter(r => r.estado === 'Pendiente').length;
+            const lavados = registros.filter(r => r.estado === 'Lavado').length;
+
+            document.getElementById('totalPendientes').innerText = pendientes;
+            document.getElementById('totalLavados').innerText = lavados;
+            document.getElementById('totalDia').innerText = registros.length;
+
+            const tbody = document.getElementById('tablaRegistros');
+            tbody.innerHTML = '';
+
+            if(registros.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400">No hay vehículos registrados hoy.</td></tr>`;
+            }
+
+            registros.forEach(reg => {
+                const badge = reg.estado === 'Pendiente' 
+                    ? '<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-800 border border-yellow-300">⏳ Pendiente</span>'
+                    : '<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800 border border-green-300">✨ Lavado</span>';
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition-colors";
+                tr.innerHTML = `
+                    <td class="p-3 text-slate-500">${reg.hora || '--:--'} hrs</td>
+                    <td class="p-3 font-bold text-slate-800">${reg.patente}</td>
+                    <td class="p-3">${badge}</td>
+                    <td class="p-3 text-right space-x-2" data-html2canvas-ignore="true">
+                        ${reg.estado === 'Pendiente' ? 
+                          `<button onclick="cambiarEstado('${reg.id}', 'Lavado')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm">Marcar Lavado</button>` : 
+                          `<button onclick="cambiarEstado('${reg.id}', 'Pendiente')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold">Revertir</button>`}
+                        <button onclick="eliminarRegistro('${reg.id}')" class="text-slate-400 hover:text-red-600 text-xs p-1" title="Eliminar">✕</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            renderizarGrafico(lavados, pendientes);
+        }
+
+        function renderizarGrafico(lavados, pendientes) {
+            if (graficoInstance) graficoInstance.destroy();
+            const ctx = document.getElementById('graficoEstadisticas').getContext('2d');
+            graficoInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Vehículos Lavados', 'Pendientes'],
+                    datasets: [{
+                        data: [lavados, pendientes],
+                        backgroundColor: ['#16a34a', '#eab308']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top' } }
+                }
+            });
+        }
+
+        // Exportación a PDF
+        window.exportarPDF = () => {
+            const elemento = document.getElementById('areaReporte');
+            const opciones = {
+                margin: 8,
+                filename: `Reporte_Lavados_${new Date().toISOString().split('T')[0]}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opciones).from(elemento).save();
+        };
+    </script>
+</body>
+</html>
