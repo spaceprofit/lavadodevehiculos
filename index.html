@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Control y Reportes de Lavado - Tattersall</title>
     <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com/)"></script>
     <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="[https://cdn.jsdelivr.net/npm/chart.js](https://cdn.jsdelivr.net/npm/chart.js)"></script>
     <!-- html2pdf.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="[https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js](https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js)"></script>
     <style>
         .page-break-inside-avoid {
             page-break-inside: avoid;
@@ -22,7 +22,7 @@
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen pb-12">
-
+<br>
     <!-- Encabezado Principal -->
     <header class="bg-amber-600 text-white p-4 shadow-md">
         <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
@@ -35,37 +35,37 @@
             <div id="reloj" class="text-sm font-mono opacity-90 font-bold bg-amber-700 px-3 py-1 rounded-lg"></div>
         </div>
     </header>
-
+<br>
     <main class="max-w-6xl mx-auto p-4 space-y-8">
-
+<br>
         <!-- SECCIÓN 1: OPERACIÓN DIARIA -->
         <section class="space-y-4">
             <h2 class="text-lg font-bold text-slate-800 border-b pb-2 flex items-center gap-2">
                 <span>⚡</span> Operación del Día
             </h2>
-
+<br>
             <!-- Formulario de Registro -->
             <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
                 <form id="formIngreso" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-600 mb-1">Patente</label>
-                        <input type="text" id="patenteInput" placeholder="Ej: AB1234" required 
+                        <input type="text" id="patenteInput" placeholder="Ej: AB1234" required
                                class="w-full border border-slate-300 rounded-lg px-4 py-2 uppercase font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-600 mb-1">Lavador (Opcional al ingreso)</label>
-                        <input type="text" id="lavadorInput" placeholder="Nombre del lavador" 
+                        <input type="text" id="lavadorInput" placeholder="Nombre del lavador"
                                class="w-full border border-slate-300 rounded-lg px-4 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500">
                     </div>
                     <div class="flex items-end">
-                        <button type="submit" 
+                        <button type="submit"
                                 class="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow-sm active:scale-95">
                             + Registrar Vehículo
                         </button>
                     </div>
                 </form>
             </div>
-
+<br>
             <!-- Tabla Operativa -->
             <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
                 <div class="flex justify-between items-center mb-3">
@@ -90,7 +90,7 @@
                 </div>
             </div>
         </section>
-
+<br>
         <!-- SECCIÓN 2: HISTÓRICO Y REPORTES DE PRODUCCIÓN -->
         <section class="space-y-4 pt-4">
             <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 border-b pb-2">
@@ -101,7 +101,7 @@
                     <span>📄</span> Exportar Informe Completo a PDF
                 </button>
             </div>
-
+<br>
             <!-- Filtros de Fecha -->
             <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 space-y-3">
                 <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Filtrar por Rango de Fechas</p>
@@ -127,10 +127,9 @@
                     </div>
                 </div>
             </div>
-
+<br>
             <!-- ÁREA COMPLETA EXPORTABLE A PDF -->
             <div id="areaReporte" class="space-y-6 bg-white p-6 rounded-xl border border-slate-200">
-                
                 <!-- Encabezado del Reporte -->
                 <div class="bg-white p-4 rounded-lg border border-slate-200 flex justify-between items-center page-break-inside-avoid">
                     <div>
@@ -141,7 +140,7 @@
                         <span id="fechaGeneracion" class="text-xs text-slate-400 font-mono"></span>
                     </div>
                 </div>
-
+<br>
                 <!-- Métricas Totales del Rango -->
                 <div class="grid grid-cols-4 gap-3 page-break-inside-avoid">
                     <div class="bg-slate-50 p-3.5 rounded-xl border-l-4 border-amber-500">
@@ -161,7 +160,7 @@
                         <p id="metricPromedioDiario" class="text-2xl font-black text-blue-600 mt-1">0</p>
                     </div>
                 </div>
-
+<br>
                 <!-- Gráfico Comparativo Diario -->
                 <div class="bg-white p-4 rounded-xl border border-slate-200 page-break-inside-avoid">
                     <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Balance Diario: Lavados vs. Pendientes</h4>
@@ -169,7 +168,7 @@
                         <canvas id="graficoProduccion"></canvas>
                     </div>
                 </div>
-
+<br>
                 <!-- Resumen por Fecha -->
                 <div class="bg-white p-4 rounded-xl border border-slate-200 page-break-inside-avoid">
                     <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Resumen Consolidado por Fecha</h4>
@@ -185,7 +184,7 @@
                         <tbody id="tablaResumenDiario" class="divide-y divide-slate-100 font-mono text-xs"></tbody>
                     </table>
                 </div>
-
+<br>
                 <!-- Detalle Completo de Vehículos e Identificación de Lavador -->
                 <div class="bg-white p-4 rounded-xl border border-slate-200">
                     <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Detalle Individual de Vehículos</h4>
@@ -202,27 +201,27 @@
                         <tbody id="tablaHistorico" class="divide-y divide-slate-100 font-mono text-xs"></tbody>
                     </table>
                 </div>
-
+<br>
             </div>
         </section>
-
+<br>
     </main>
-
+<br>
     <!-- Módulos Firebase SDK v10 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { 
-            getFirestore, 
-            collection, 
-            addDoc, 
-            onSnapshot, 
-            doc, 
-            updateDoc, 
-            deleteDoc, 
-            query, 
-            orderBy 
+        import {
+            getFirestore,
+            collection,
+            addDoc,
+            onSnapshot,
+            doc,
+            updateDoc,
+            deleteDoc,
+            query,
+            orderBy
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
+<br>
         const firebaseConfig = {
             apiKey: "AIzaSyALBTpZnFDcCtmis-iR9BLBWyC1waiqyWc",
             authDomain: "lavadotattersall.firebaseapp.com",
@@ -232,23 +231,23 @@
             appId: "1:785354976428:web:5aef07c327dd9b3e0f8309",
             measurementId: "G-HT2THRLBM3"
         };
-
+<br>
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const lavadosRef = collection(db, "lavados");
-
+<br>
         let todosLosRegistros = [];
         let graficoChart = null;
-
+<br>
         setInterval(() => {
             document.getElementById('reloj').innerText = new Date().toLocaleTimeString('es-ES');
         }, 1000);
-
+<br>
         const hoy = new Date();
         const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
         document.getElementById('fechaInicio').value = inicioMes.toISOString().split('T')[0];
         document.getElementById('fechaFin').value = hoy.toISOString().split('T')[0];
-
+<br>
         const q = query(lavadosRef, orderBy("timestamp", "desc"));
         onSnapshot(q, (snapshot) => {
             todosLosRegistros = [];
@@ -257,79 +256,90 @@
             });
             renderizarOperacionHoy();
             filtrarPorRango();
+        }, (error) => {
+            console.error("Error leyendo Firestore:", error);
+            alert("No se pudieron cargar los registros de Firestore. Revisa las reglas/permisos de Firestore.\n\n" + error.message);
         });
-
+<br>
         document.getElementById('formIngreso').addEventListener('submit', async (e) => {
             e.preventDefault();
             const inputPatente = document.getElementById('patenteInput');
             const inputLavador = document.getElementById('lavadorInput');
-            
             const patente = inputPatente.value.trim().toUpperCase();
             const lavador = inputLavador.value.trim() || 'Sin Asignar';
             if(!patente) return;
-
+<br>
             const ahora = new Date();
-            await addDoc(lavadosRef, {
-                patente: patente,
-                lavador: lavador,
-                estado: 'Pendiente',
-                horaIngreso: ahora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                fechaIngreso: ahora.toISOString().split('T')[0],
-                fechaLavado: null,
-                horaLavado: null,
-                timestamp: Date.now()
-            });
-            inputPatente.value = '';
-            inputLavador.value = '';
-        });
 
+            try {
+                await addDoc(lavadosRef, {
+                    patente: patente,
+                    lavador: lavador,
+                    estado: 'Pendiente',
+                    horaIngreso: ahora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    fechaIngreso: ahora.toISOString().split('T')[0],
+                    fechaLavado: null,
+                    horaLavado: null,
+                    timestamp: Date.now()
+                });
+
+                inputPatente.value = '';
+                inputLavador.value = '';
+                alert('Vehículo registrado correctamente.');
+            } catch (error) {
+                console.error("Error registrando vehículo:", error);
+                alert("NO SE PUDO REGISTRAR LA PATENTE.\n\n" + error.message +
+                      "\n\nSi aparece 'permission-denied', el problema está en las reglas de Firestore.");
+            }
+        });
+<br>
         window.cambiarEstado = async (id, nuevoEstado) => {
             const docRef = doc(db, "lavados", id);
             const ahora = new Date();
-
+<br>
             if (nuevoEstado === 'Lavado') {
                 const registroActual = todosLosRegistros.find(r => r.id === id);
                 let lavador = registroActual?.lavador;
-
+<br>
                 if (!lavador || lavador === 'Sin Asignar') {
                     const nombreSolicitado = prompt("Ingrese el nombre del lavador responsable:");
                     if (nombreSolicitado && nombreSolicitado.trim() !== "") {
                         lavador = nombreSolicitado.trim();
                     }
                 }
-
-                await updateDoc(docRef, { 
+<br>
+                await updateDoc(docRef, {
                     estado: 'Lavado',
                     lavador: lavador || 'Sin Asignar',
                     fechaLavado: ahora.toISOString().split('T')[0],
                     horaLavado: ahora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                 });
             } else {
-                await updateDoc(docRef, { 
+                await updateDoc(docRef, {
                     estado: 'Pendiente',
                     fechaLavado: null,
                     horaLavado: null
                 });
             }
         };
-
+<br>
         window.eliminarRegistro = async (id) => {
             if(confirm("¿Eliminar este registro?")) {
                 await deleteDoc(doc(db, "lavados", id));
             }
         };
-
+<br>
         function renderizarOperacionHoy() {
             const hoyStr = new Date().toISOString().split('T')[0];
             const registrosHoy = todosLosRegistros.filter(r => r.fechaIngreso === hoyStr);
             const tbody = document.getElementById('tablaOperativa');
             tbody.innerHTML = '';
-
+<br>
             if (registrosHoy.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">No hay vehículos ingresados hoy.</td></tr>`;
                 return;
             }
-
+<br>
             registrosHoy.forEach(reg => {
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50";
@@ -338,13 +348,13 @@
                     <td class="p-3 font-bold text-slate-800">${reg.patente}</td>
                     <td class="p-3 text-slate-600 font-medium">${reg.lavador || 'Sin Asignar'}</td>
                     <td class="p-3">
-                        ${reg.estado === 'Pendiente' 
+                        ${reg.estado === 'Pendiente'
                           ? '<span class="px-2 py-0.5 rounded text-xs font-bold bg-yellow-100 text-yellow-800">⏳ Pendiente</span>'
                           : '<span class="px-2 py-0.5 rounded text-xs font-bold bg-green-100 text-green-800">✨ Lavado</span>'}
                     </td>
                     <td class="p-3 text-right space-x-2">
-                        ${reg.estado === 'Pendiente' ? 
-                          `<button onclick="cambiarEstado('${reg.id}', 'Lavado')" class="bg-green-600 text-white px-3 py-1 rounded text-xs font-bold">Marcar Lavado</button>` : 
+                        ${reg.estado === 'Pendiente' ?
+                          `<button onclick="cambiarEstado('${reg.id}', 'Lavado')" class="bg-green-600 text-white px-3 py-1 rounded text-xs font-bold">Marcar Lavado</button>` :
                           `<button onclick="cambiarEstado('${reg.id}', 'Pendiente')" class="bg-slate-200 text-slate-700 px-3 py-1 rounded text-xs font-semibold">Revertir</button>`}
                         <button onclick="eliminarRegistro('${reg.id}')" class="text-slate-400 hover:text-red-600 text-xs p-1">✕</button>
                     </td>
@@ -352,45 +362,45 @@
                 tbody.appendChild(tr);
             });
         }
-
+<br>
         window.filtrarPorRango = () => {
             const fInicio = document.getElementById('fechaInicio').value;
             const fFin = document.getElementById('fechaFin').value;
-
+<br>
             if(!fInicio || !fFin) return;
-
+<br>
             document.getElementById('subtituloRango').innerText = `Período: ${fInicio} al ${fFin}`;
             document.getElementById('fechaGeneracion').innerText = `Generado: ${new Date().toLocaleDateString('es-ES')}`;
-
+<br>
             const registrosFiltrados = todosLosRegistros.filter(r => {
                 const fechaRef = r.fechaIngreso || r.fechaLavado;
                 return fechaRef >= fInicio && fechaRef <= fFin;
             });
-
+<br>
             actualizarInformeProduccion(registrosFiltrados);
         };
-
+<br>
         window.setFiltroRapido = (tipo) => {
             const hoy = new Date();
             let inicio = new Date();
-
+<br>
             if (tipo === 'semana') {
                 const diaSemana = hoy.getDay() || 7;
                 inicio.setDate(hoy.getDate() - diaSemana + 1);
             } else if (tipo === 'mes') {
                 inicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
             }
-
+<br>
             document.getElementById('fechaInicio').value = inicio.toISOString().split('T')[0];
             document.getElementById('fechaFin').value = hoy.toISOString().split('T')[0];
             filtrarPorRango();
         };
-
+<br>
         function actualizarInformeProduccion(registros) {
             const totalIngresados = registros.length;
             const totalLavados = registros.filter(r => r.estado === 'Lavado').length;
             const totalPendientes = registros.filter(r => r.estado === 'Pendiente').length;
-
+<br>
             const desgloseDiario = {};
             registros.forEach(r => {
                 const fecha = r.fechaIngreso || r.fechaLavado;
@@ -401,19 +411,19 @@
                 if (r.estado === 'Lavado') desgloseDiario[fecha].lavados += 1;
                 if (r.estado === 'Pendiente') desgloseDiario[fecha].pendientes += 1;
             });
-
+<br>
             const diasConActividad = Object.keys(desgloseDiario).length;
             const promedioDiario = diasConActividad > 0 ? (totalLavados / diasConActividad).toFixed(1) : 0;
-
+<br>
             document.getElementById('metricTotalIngresados').innerText = totalIngresados;
             document.getElementById('metricTotalLavados').innerText = totalLavados;
             document.getElementById('metricTotalPendientes').innerText = totalPendientes;
             document.getElementById('metricPromedioDiario').innerText = promedioDiario;
-
+<br>
             const tbodyResumen = document.getElementById('tablaResumenDiario');
             tbodyResumen.innerHTML = '';
             const fechasOrdenadas = Object.keys(desgloseDiario).sort();
-
+<br>
             if (fechasOrdenadas.length === 0) {
                 tbodyResumen.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-slate-400">Sin datos en el rango seleccionado.</td></tr>`;
             } else {
@@ -429,19 +439,19 @@
                     tbodyResumen.appendChild(tr);
                 });
             }
-
+<br>
             const tbodyHistorico = document.getElementById('tablaHistorico');
             tbodyHistorico.innerHTML = '';
-
+<br>
             if (registros.length === 0) {
                 tbodyHistorico.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">No hay registros en el rango seleccionado.</td></tr>`;
             } else {
                 registros.forEach(reg => {
                     const tr = document.createElement('tr');
-                    const badge = reg.estado === 'Lavado' 
-                        ? '<span class="text-green-700 font-bold">✨ Lavado</span>' 
+                    const badge = reg.estado === 'Lavado'
+                        ? '<span class="text-green-700 font-bold">✨ Lavado</span>'
                         : '<span class="text-yellow-700 font-bold">⏳ Pendiente</span>';
-
+<br>
                     tr.innerHTML = `
                         <td class="p-2.5 text-slate-700 font-medium">${reg.fechaIngreso || '--'}</td>
                         <td class="p-2.5 text-slate-500">${reg.horaIngreso || '--:--'}</td>
@@ -452,17 +462,17 @@
                     tbodyHistorico.appendChild(tr);
                 });
             }
-
+<br>
             renderizarGraficoProduccion(desgloseDiario);
         }
-
+<br>
         function renderizarGraficoProduccion(desgloseDiario) {
             const fechas = Object.keys(desgloseDiario).sort();
             const arrayLavados = fechas.map(f => desgloseDiario[f].lavados);
             const arrayPendientes = fechas.map(f => desgloseDiario[f].pendientes);
-
+<br>
             if (graficoChart) graficoChart.destroy();
-
+<br>
             const ctx = document.getElementById('graficoProduccion').getContext('2d');
             graficoChart = new Chart(ctx, {
                 type: 'bar',
@@ -496,12 +506,12 @@
                 }
             });
         }
-
+<br>
         window.exportarPDF = () => {
             const elemento = document.getElementById('areaReporte');
             const fInicio = document.getElementById('fechaInicio').value;
             const fFin = document.getElementById('fechaFin').value;
-
+<br>
             const opciones = {
                 margin: [10, 10, 10, 10],
                 filename: `Informe_Produccion_Lavados_${fInicio}_al_${fFin}.pdf`,
@@ -510,7 +520,7 @@
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
                 pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
             };
-
+<br>
             html2pdf().set(opciones).from(elemento).save();
         };
     </script>
