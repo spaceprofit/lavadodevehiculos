@@ -53,9 +53,12 @@
                                class="w-full border border-slate-300 rounded-lg px-4 py-2 uppercase font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">Lavador (Opcional al ingreso)</label>
-                        <input type="text" id="lavadorInput" placeholder="Nombre del lavador"
-                               class="w-full border border-slate-300 rounded-lg px-4 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Lavador Asignado</label>
+                        <select id="lavadorInput" required
+                                class="w-full border border-slate-300 rounded-lg px-4 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                            <option value="Lavador 1">Lavador 1</option>
+                            <option value="Lavador 2">Lavador 2</option>
+                        </select>
                     </div>
                     <div class="flex items-end">
                         <button type="submit"
@@ -141,7 +144,7 @@
                 </div>
                 <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
                     <div>
-                        <p class="text-xs font-semibold text-slate-500 uppercase">En Proceso / Pendientes</p>
+                        <p class="text-xs font-semibold text-slate-500 uppercase">Pendientes</p>
                         <p id="kpiPendientes" class="text-2xl font-bold text-amber-600">0</p>
                     </div>
                     <span class="text-2xl">⏳</span>
@@ -219,30 +222,31 @@
         const fechaHasta = document.getElementById('fechaHasta');
         const filtroLavador = document.getElementById('filtroLavador');
 
-        // 1. Registrar Nuevo Vehículo
+        // 1. Registrar Nuevo Vehículo (Estado: Pendiente)
         formIngreso.addEventListener('submit', async (e) => {
             e.preventDefault();
             const patente = patenteInput.value.trim().toUpperCase();
-            const lavador = lavadorInput.value.trim();
+            const lavador = lavadorInput.value;
 
             if (!patente) return;
 
             try {
                 await addDoc(lavadosRef, {
                     patente: patente,
-                    lavador: lavador || "Sin Asignar",
-                    estado: lavador ? "En Proceso" : "Pendiente",
+                    lavador: lavador,
+                    estado: "Pendiente",
                     fechaIngreso: serverTimestamp(),
                     fechaTermino: null
                 });
-                formIngreso.reset();
+                patenteInput.value = "";
+                lavadorInput.value = "Lavador 1";
             } catch (error) {
                 console.error("Error al registrar:", error);
                 alert("Error al guardar en Firebase: " + error.message);
             }
         });
 
-        // 2. Escuchar Cambios en Tiempo Real (Persistencia activa)
+        // 2. Escuchar Cambios en Tiempo Real
         if (lavadosRef) {
             onSnapshot(lavadosRef, (snapshot) => {
                 registrosGlobales = snapshot.docs.map(docSnap => ({
@@ -265,7 +269,7 @@
             });
         }
 
-        // Renderizar Tabla Operativa
+        // Renderizar Tabla Operativa con Selector de Lavador
         function renderTablaOperativa() {
             const hoyStr = new Date().toDateString();
             const registrosHoy = registrosGlobales.filter(r => {
@@ -281,9 +285,7 @@
             tablaOperativa.innerHTML = registrosHoy.map(r => {
                 const horaIngreso = r.fechaIngreso ? r.fechaIngreso.toDate().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) : 'Reciente';
                 
-                let badgeClass = "bg-slate-100 text-slate-600";
-                if (r.estado === "Pendiente") badgeClass = "bg-amber-100 text-amber-700";
-                if (r.estado === "En Proceso") badgeClass = "bg-blue-100 text-blue-700";
+                let badgeClass = "bg-amber-100 text-amber-700";
                 if (r.estado === "Completado") badgeClass = "bg-emerald-100 text-emerald-700";
 
                 return `
@@ -294,9 +296,11 @@
                             <button onclick="window.editarPatente('${r.id}', '${r.patente}')" title="Editar Patente" class="ml-1 text-slate-400 hover:text-amber-600">✏️</button>
                         </td>
                         <td class="p-3">
-                            <input type="text" value="${r.lavador || ''}" placeholder="Asignar lavador"
-                                   onchange="window.actualizarLavador('${r.id}', this.value)"
-                                   class="border border-slate-200 rounded px-2 py-1 text-xs w-full max-w-[150px] focus:outline-none focus:border-amber-500">
+                            <select onchange="window.actualizarLavador('${r.id}', this.value)"
+                                    class="border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-amber-500 bg-white">
+                                <option value="Lavador 1" ${r.lavador === 'Lavador 1' ? 'selected' : ''}>Lavador 1</option>
+                                <option value="Lavador 2" ${r.lavador === 'Lavador 2' ? 'selected' : ''}>Lavador 2</option>
+                            </select>
                         </td>
                         <td class="p-3">
                             <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${badgeClass}">
@@ -332,10 +336,8 @@
 
         window.actualizarLavador = async (id, nuevoLavador) => {
             const docRef = doc(db, "lavados_antofagasta", id);
-            const lavadorLimpio = nuevoLavador.trim();
             await updateDoc(docRef, {
-                lavador: lavadorLimpio || "Sin Asignar",
-                estado: lavadorLimpio ? "En Proceso" : "Pendiente"
+                lavador: nuevoLavador
             });
         };
 
@@ -358,11 +360,13 @@
 
         // 3. Filtros y Métricas del Histórico
         function actualizarFiltrosYReportes() {
-            const lavadoresUnicos = [...new Set(registrosGlobales.map(r => r.lavador).filter(l => l && l !== "Sin Asignar"))];
             const lavadorSeleccionado = filtroLavador.value;
             
-            filtroLavador.innerHTML = `<option value="">Todos los lavadores</option>` + 
-                lavadoresUnicos.map(l => `<option value="${l}" ${l === lavadorSeleccionado ? 'selected' : ''}>${l}</option>`).join('');
+            filtroLavador.innerHTML = `
+                <option value="">Todos los lavadores</option>
+                <option value="Lavador 1" ${lavadorSeleccionado === 'Lavador 1' ? 'selected' : ''}>Lavador 1</option>
+                <option value="Lavador 2" ${lavadorSeleccionado === 'Lavador 2' ? 'selected' : ''}>Lavador 2</option>
+            `;
 
             const desde = fechaDesde.value ? new Date(fechaDesde.value + "T00:00:00") : null;
             const hasta = fechaHasta.value ? new Date(fechaHasta.value + "T23:59:59") : null;
@@ -387,12 +391,16 @@
             renderGrafico(datosFiltrados);
         }
 
-        // Renderizar Graficos
+        // Renderizar Gráficos
         function renderGrafico(datos) {
-            const conteoPorLavador = {};
+            const conteoPorLavador = { "Lavador 1": 0, "Lavador 2": 0 };
+            
             datos.forEach(r => {
-                const lav = r.lavador || "Sin Asignar";
-                conteoPorLavador[lav] = (conteoPorLavador[lav] || 0) + 1;
+                if (r.lavador in conteoPorLavador) {
+                    conteoPorLavador[r.lavador]++;
+                } else if (r.lavador) {
+                    conteoPorLavador[r.lavador] = 1;
+                }
             });
 
             const labels = Object.keys(conteoPorLavador);
