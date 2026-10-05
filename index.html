@@ -169,7 +169,7 @@
         actualizarReloj();
     </script>
 
-    <!-- Integración con Firebase v10 y Lógica del Sistema -->
+    <!-- Integración con Firebase v10 corregida -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { 
@@ -179,12 +179,10 @@
             updateDoc, 
             doc, 
             onSnapshot, 
-            query, 
-            orderBy, 
             serverTimestamp 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Configuración de Firebase (Reemplazar valores con los reales de tu consola de Firebase)
+        // CONFIGURACIÓN DE FIREBASE (Reemplazar con tus credenciales de la consola de Firebase)
         const firebaseConfig = {
             apiKey: "TU_API_KEY_REAL",
             authDomain: "tu-proyecto.firebaseapp.com",
@@ -194,10 +192,18 @@
             appId: "1:123456789:web:abcdef"
         };
 
-        // Inicialización
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const lavadosRef = collection(db, "lavados_antofagasta");
+        let db;
+        let lavadosRef;
+
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            lavadosRef = collection(db, "lavados_antofagasta");
+        } catch (e) {
+            console.error("Error al inicializar Firebase:", e);
+            document.getElementById('tablaOperativa').innerHTML = 
+                `<tr><td colspan="5" class="p-4 text-center text-red-500 font-bold">Error de configuración: Revisa que las credenciales en firebaseConfig sean válidas.</td></tr>`;
+        }
 
         let registrosGlobales = [];
         let chartInstance = null;
@@ -234,17 +240,28 @@
             }
         });
 
-        // 2. Escuchar Cambios en Tiempo Real (Firestore listener)
-        const q = query(lavadosRef, orderBy("fechaIngreso", "desc"));
-        onSnapshot(q, (snapshot) => {
-            registrosGlobales = snapshot.docs.map(docSnap => ({
-                id: docSnap.id,
-                ...docSnap.data()
-            }));
+        // 2. Escuchar Cambios en Tiempo Real (se remueve orderBy directo para evitar errores con timestamps nulos)
+        if (lavadosRef) {
+            onSnapshot(lavadosRef, (snapshot) => {
+                registrosGlobales = snapshot.docs.map(docSnap => ({
+                    id: docSnap.id,
+                    ...docSnap.data()
+                }));
 
-            renderTablaOperativa();
-            actualizarFiltrosYReportes();
-        });
+                // Ordenar localmente por fecha descendente
+                registrosGlobales.sort((a, b) => {
+                    const tA = a.fechaIngreso ? a.fechaIngreso.toDate().getTime() : Date.now();
+                    const tB = b.fechaIngreso ? b.fechaIngreso.toDate().getTime() : Date.now();
+                    return tB - tA;
+                });
+
+                renderTablaOperativa();
+                actualizarFiltrosYReportes();
+            }, (error) => {
+                console.error("Error en Snapshot:", error);
+                tablaOperativa.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500 font-bold">Error al conectar con Firestore: ${error.message}</td></tr>`;
+            });
+        }
 
         // Renderizar Tabla Operativa del Día
         function renderTablaOperativa() {
@@ -260,7 +277,7 @@
             }
 
             tablaOperativa.innerHTML = registrosHoy.map(r => {
-                const horaIngreso = r.fechaIngreso ? r.fechaIngreso.toDate().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                const horaIngreso = r.fechaIngreso ? r.fechaIngreso.toDate().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) : 'Reciente';
                 
                 let badgeClass = "bg-slate-100 text-slate-600";
                 if (r.estado === "Pendiente") badgeClass = "bg-amber-100 text-amber-700";
@@ -314,19 +331,17 @@
 
         // 3. Filtros y Métricas del Histórico
         function actualizarFiltrosYReportes() {
-            // Cargar opciones únicas en el filtro de lavadores
             const lavadoresUnicos = [...new Set(registrosGlobales.map(r => r.lavador).filter(l => l && l !== "Sin Asignar"))];
             const lavadorSeleccionado = filtroLavador.value;
             
             filtroLavador.innerHTML = `<option value="">Todos los lavadores</option>` + 
                 lavadoresUnicos.map(l => `<option value="${l}" ${l === lavadorSeleccionado ? 'selected' : ''}>${l}</option>`).join('');
 
-            // Filtrado de datos
             const desde = fechaDesde.value ? new Date(fechaDesde.value + "T00:00:00") : null;
             const hasta = fechaHasta.value ? new Date(fechaHasta.value + "T23:59:59") : null;
 
             const datosFiltrados = registrosGlobales.filter(r => {
-                if (!r.fechaIngreso) return false;
+                if (!r.fechaIngreso) return true;
                 const f = r.fechaIngreso.toDate();
                 if (desde && f < desde) return false;
                 if (hasta && f > hasta) return false;
@@ -334,7 +349,6 @@
                 return true;
             });
 
-            // KPIs
             const total = datosFiltrados.length;
             const completados = datosFiltrados.filter(r => r.estado === 'Completado').length;
             const pendientes = total - completados;
@@ -343,7 +357,6 @@
             document.getElementById('kpiCompletados').innerText = completados;
             document.getElementById('kpiPendientes').innerText = pendientes;
 
-            // Actualizar Gráfico
             renderGrafico(datosFiltrados);
         }
 
@@ -383,7 +396,6 @@
             });
         }
 
-        // Eventos de Filtros
         fechaDesde.addEventListener('change', actualizarFiltrosYReportes);
         fechaHasta.addEventListener('change', actualizarFiltrosYReportes);
         filtroLavador.addEventListener('change', actualizarFiltrosYReportes);
