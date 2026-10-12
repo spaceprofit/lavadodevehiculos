@@ -151,6 +151,30 @@
                 </div>
             </div>
 
+            <!-- Tabla de Patentes del Histórico -->
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-3">
+                    <h3 class="text-sm font-bold text-slate-700">Detalle de Patentes Registradas</h3>
+                    <span id="totalHistorico" class="text-xs text-slate-500">0 registros</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
+                                <th class="p-3">Fecha</th>
+                                <th class="p-3">Hora</th>
+                                <th class="p-3">Patente</th>
+                                <th class="p-3">Lavador</th>
+                                <th class="p-3">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaHistorico" class="divide-y divide-slate-100 text-sm">
+                            <tr><td colspan="5" class="p-4 text-center text-slate-400">Cargando historial...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- Gráfico de Rendimiento por Lavador -->
             <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm page-break-inside-avoid">
                 <h3 class="text-sm font-bold text-slate-700 mb-4">Producción por Lavador</h3>
@@ -388,7 +412,51 @@
             document.getElementById('kpiCompletados').innerText = completados;
             document.getElementById('kpiPendientes').innerText = pendientes;
 
+            // Mostrar el detalle de todas las patentes que coinciden con los filtros
+            renderTablaHistorico(datosFiltrados);
             renderGrafico(datosFiltrados);
+        }
+
+        // Renderizar tabla histórica de patentes
+        function renderTablaHistorico(datos) {
+            const tabla = document.getElementById('tablaHistorico');
+            const total = document.getElementById('totalHistorico');
+
+            total.textContent = `${datos.length} ${datos.length === 1 ? 'registro' : 'registros'}`;
+
+            if (!datos.length) {
+                tabla.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">No hay patentes para los filtros seleccionados.</td></tr>`;
+                return;
+            }
+
+            tabla.innerHTML = datos.map(r => {
+                const fecha = r.fechaIngreso?.toDate ? r.fechaIngreso.toDate() : null;
+                const fechaTexto = fecha ? fecha.toLocaleDateString('es-CL') : 'Pendiente de fecha';
+                const horaTexto = fecha ? fecha.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) : '—';
+                const patente = String(r.patente || 'Sin patente');
+                const lavador = String(r.lavador || 'Sin asignar');
+                const estado = String(r.estado || 'Sin estado');
+                const estadoClase = estado === 'Completado'
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : 'bg-amber-100 text-amber-700';
+
+                // Usar textContent para los datos ingresados por usuarios y evitar insertar HTML desde la base de datos.
+                return `<tr class="hover:bg-slate-50">
+                    <td class="p-3 text-slate-600">${fechaTexto}</td>
+                    <td class="p-3 text-slate-600">${horaTexto}</td>
+                    <td class="p-3 font-mono font-bold text-slate-800"></td>
+                    <td class="p-3 text-slate-600"></td>
+                    <td class="p-3"><span class="px-2.5 py-1 rounded-full text-xs font-semibold ${estadoClase}">${estado}</span></td>
+                </tr>`;
+            }).join('');
+
+            // Insertar patente y lavador como texto, sin interpretar su contenido como HTML.
+            Array.from(tabla.querySelectorAll('tr')).forEach((fila, i) => {
+                if (datos[i]) {
+                    fila.cells[2].textContent = String(datos[i].patente || 'Sin patente');
+                    fila.cells[3].textContent = String(datos[i].lavador || 'Sin asignar');
+                }
+            });
         }
 
         // Renderizar Gráficos
